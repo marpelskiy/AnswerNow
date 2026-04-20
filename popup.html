@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        :root {
+            --bg-top: #2dd4bf;
+            --bg-bottom: #111827;
+            --active-item: #ffffff;
+            --text-inactive: rgba(255, 255, 255, 0.7);
+            --text-active: #000000;
+            --shadow-glass: inset 1px 1px 1px rgba(255,255,255,0.1), 0 4px 6px rgba(0,0,0,0.2);
+            --accent: #2dd4bf;
+            --danger: #ef4444;
+            --success: #22c55e;
+        }
+
+        * { box-sizing: border-box; user-select: none; }
+
+        body {
+            width: 420px; height: 580px; margin: 0;
+            background: linear-gradient(135deg, var(--bg-top), var(--bg-bottom));
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            border-radius: 20px; overflow: hidden;
+            display: flex; border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* ── NAV ── */
+        nav {
+            width: 130px; padding: 20px 0;
+            display: flex; flex-direction: column; align-items: center;
+            border-right: 1px solid rgba(255,255,255,0.05);
+            position: relative; flex-shrink: 0;
+        }
+
+        .logo-circle {
+            width: 50px; height: 50px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            box-shadow: var(--shadow-glass); margin-bottom: 20px; flex-shrink: 0;
+        }
+        .logo-circle svg { width: 30px; height: 30px; fill: #fff; }
+
+        .nav-items { display: flex; flex-direction: column; width: 100%; position: relative; }
+
+        .nav-btn {
+            width: 100%; height: 60px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: var(--text-inactive); cursor: pointer;
+            position: relative; z-index: 10;
+            transition: color 0.3s ease;
+        }
+        .nav-btn svg { width: 22px; height: 22px; fill: var(--text-inactive); margin-bottom: 4px; transition: fill 0.3s ease; }
+        .nav-btn span { font-size: 10px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+
+        .nav-btn.active { color: var(--text-active); }
+        .nav-btn.active svg { fill: var(--text-active); }
+
+        .active-indicator {
+            position: absolute; left: 10px; width: calc(100% - 10px); height: 60px;
+            background: var(--active-item); border-radius: 30px 0 0 30px;
+            top: 0; transform: translateY(-200px);
+            transition: transform 0.35s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            z-index: 5;
+        }
+
+
+        .container {
+            flex: 1; background: #fff;
+            padding: 22px 20px; display: flex; flex-direction: column;
+            border-radius: 20px 0 0 20px; box-shadow: -10px 0 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .content { display: none; height: 100%; flex-direction: column; }
+        .content.active { display: flex; }
+
+        .title {
+            font-size: 14px; font-weight: 800; color: #1f2937;
+            margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1px;
+            flex-shrink: 0;
+        }
+
+
+        button {
+            width: 100%; background: #1f2937; color: #fff;
+            border: none; padding: 13px; font-weight: 700; font-size: 12px;
+            text-transform: uppercase; border-radius: 12px; cursor: pointer;
+            transition: background 0.2s, transform 0.1s; flex-shrink: 0;
+            font-family: inherit;
+        }
+        button:hover { background: #374151; }
+        button:active { transform: translateY(1px); }
+        button:disabled { background: #9ca3af; cursor: not-allowed; transform: none; }
+
+        input, select {
+            width: 100%; background: #f3f4f6; border: 2px solid transparent;
+            color: #1f2937; padding: 11px 12px; border-radius: 12px; margin-bottom: 10px;
+            font-size: 13px; font-family: inherit; outline: none;
+            transition: border-color 0.2s;
+        }
+        input:focus, select:focus { border-color: var(--accent); }
+        select { cursor: pointer; }
+
+        label {
+            font-size: 10px; font-weight: 700; color: #6b7280;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            display: block; margin-bottom: 4px;
+        }
+
+
+        #res {
+            font-family: 'Consolas', monospace; font-size: 12px;
+            color: #1f2937; white-space: pre-wrap;
+            margin-top: 12px; overflow-y: auto; flex: 1;
+            line-height: 1.6; word-break: break-word;
+        }
+
+
+        .provider-row {
+            display: flex; gap: 8px; margin-bottom: 12px; flex-shrink: 0;
+        }
+        .prov-btn {
+            flex: 1; padding: 8px 6px; font-size: 10px; font-weight: 700;
+            border-radius: 10px; border: 2px solid #e5e7eb;
+            background: #f9fafb; color: #6b7280; cursor: pointer;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            transition: all 0.2s; display: flex; flex-direction: column;
+            align-items: center; gap: 3px; width: auto;
+        }
+        .prov-btn svg { width: 18px; height: 18px; }
+        .prov-btn.active {
+            border-color: var(--accent); background: #f0fdfa; color: #0f766e;
+        }
+        .prov-btn:hover:not(.active) { border-color: #d1d5db; background: #f3f4f6; }
+
+        .status-row {
+            display: flex; align-items: center; gap: 6px;
+            margin-bottom: 10px; flex-shrink: 0;
+        }
+        .status-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #e5e7eb; flex-shrink: 0;
+        }
+        .status-dot.ok { background: var(--success); box-shadow: 0 0 6px var(--success); }
+        .status-dot.err { background: var(--danger); }
+        .status-text { font-size: 10px; color: #9ca3af; text-transform: uppercase; font-weight: 600; letter-spacing: 0.4px; }
+
+        #historyList { flex: 1; overflow-y: auto; }
+        .hist-item {
+            padding: 10px; border-bottom: 1px solid #f3f4f6;
+            font-size: 11px; color: #374151; line-height: 1.5;
+            cursor: default;
+        }
+        .hist-item:last-child { border-bottom: none; }
+        .hist-meta {
+            font-size: 9px; color: #9ca3af; text-transform: uppercase;
+            font-weight: 700; margin-bottom: 3px; letter-spacing: 0.4px;
+        }
+        .hist-empty { color: #9ca3af; text-align: center; padding: 30px 0; font-size: 11px; }
+
+        .cfg-section {
+            background: #f9fafb; border-radius: 12px;
+            padding: 12px; margin-bottom: 10px; flex-shrink: 0;
+        }
+        .cfg-section-title {
+            font-size: 9px; font-weight: 800; color: #9ca3af;
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;
+        }
+        .cfg-section input { margin-bottom: 0; background: #fff; }
+        .key-status {
+            font-size: 9px; font-weight: 700; margin-top: 5px;
+            padding: 4px 8px; border-radius: 6px; display: inline-block;
+        }
+        .key-status.set { background: #dcfce7; color: #15803d; }
+        .key-status.unset { background: #fef2f2; color: #b91c1c; }
+
+        .cfg-scroll { overflow-y: auto; flex: 1; }
+
+
+        #ouroboros-loader {
+            display: none; flex-direction: column;
+            align-items: center; justify-content: center; padding: 16px 0;
+            flex-shrink: 0;
+        }
+        .ouroboros-svg { width: 60px; height: 60px; }
+        .rotate-group {
+            transform-origin: 50px 50px;
+            animation: rotateIndefinite 5s linear infinite;
+        }
+        .snake-body {
+            fill: none; stroke: var(--bg-top); stroke-width: 10;
+            stroke-linecap: round;
+            filter: drop-shadow(0 0 8px var(--bg-top));
+            animation: breathingSnake 2s ease-in-out infinite;
+        }
+        @keyframes rotateIndefinite { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes breathingSnake { 0%,100% { opacity:0.8; stroke-width:9; } 50% { opacity:1; stroke-width:11; } }
+        .loader-text { margin-top: 10px; font-size: 10px; color: #374151; text-transform: uppercase; letter-spacing: 1px; }
+
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="logo-circle">
+        <svg viewBox="0 0 24 24"><path d="M12,2A10,10,0,0,0,2,12A10,10,0,0,0,12,22A10,10,0,0,0,22,12A10,10,0,0,0,12,2M12,20A8,8,0,0,1,4,12A8,8,0,0,1,12,4A8,8,0,0,1,20,12A8,8,0,0,1,12,20M12,7.5A4.5,4.5,0,1,1,7.5,12,4.5,4.5,0,0,1,12,7.5Z"/></svg>
+    </div>
+
+    <div class="nav-items">
+        <div class="active-indicator" id="navIndicator"></div>
+
+        <div class="nav-btn active" data-tab="main">
+            <svg viewBox="0 0 24 24"><path d="M12,3L2,12h3v8h14v-8h3L12,3z M17,18H7v-7.8l5-4.5l5,4.5V18z"/></svg>
+            <span>Main Menu</span>
+        </div>
+
+        <div class="nav-btn" data-tab="history">
+            <svg viewBox="0 0 24 24"><path d="M13,3a9,9,0,0,0-9,9H2l3.89,3.89.07.14L10,12H7a7,7,0,1,1,7,7,7.07,7.07,0,0,1-6-3.15V19.86A9,9,0,1,0,13,3Z"/></svg>
+            <span>Logs</span>
+        </div>
+
+        <div class="nav-btn" data-tab="config">
+            <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.81,11.69,4.81,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.5c-1.93,0-3.5-1.57-3.5-3.5 s1.57-3.5,3.5-3.5s3.5,1.57,3.5,3.5S13.93,15.5,12,15.5z"/></svg>
+            <span>Settings</span>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+
+    <div id="main" class="content active">
+        <div class="title">Answer Now beta</div>
+
+        <div class="provider-row">
+            <button class="prov-btn active" data-provider="groq" title="Groq — llama-4-scout-17b-16e-instruct">
+
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+                Groq
+            </button>
+            <button class="prov-btn" data-provider="gemini" title="Gemini — gemini-2.0-flash">
+
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8 0-4.41 3.59-8 8-8 4.41 0 8 3.59 8 8 0 4.41-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+                Gemini
+            </button>
+        </div>
+
+        <div class="status-row">
+            <div class="status-dot" id="statusDot"></div>
+            <span class="status-text" id="statusText">checking keys...</span>
+        </div>
+
+        <button id="capBtn">Analyze Screen</button>
+
+        <div id="ouroboros-loader">
+            <svg class="ouroboros-svg" viewBox="0 0 100 100">
+                <filter id="wiggle">
+                    <feTurbulence type="turbulence" baseFrequency="0.04" numOctaves="2">
+                        <animate attributeName="seed" from="1" to="100" dur="10s" repeatCount="indefinite"/>
+                    </feTurbulence>
+                    <feDisplacementMap in="SourceGraphic" scale="5"/>
+                </filter>
+                <g class="rotate-group">
+                    <path class="snake-body" d="M50 10 A 40 40 0 1 1 20 20" filter="url(#wiggle)"/>
+                    <g transform="translate(50, 10) rotate(-10)">
+                        <path d="M-6 -8 L18 0 L-6 8 Z" fill="var(--bg-top)" stroke="var(--bg-top)" stroke-width="2"/>
+                    </g>
+                </g>
+            </svg>
+            <div class="loader-text" id="loaderText">Analyzing...</div>
+        </div>
+
+        <div id="res">by marpelskiy</div>
+    </div>
+
+    <!-- ── HISTORY TAB ── -->
+    <div id="history" class="content">
+        <div class="title">Dump Logs</div>
+        <div id="historyList"></div>
+        <button id="clearHistory" style="margin-top:12px; background:#e5e7eb; color:#1f2937; flex-shrink:0;">Clear Dump</button>
+    </div>
+
+    <!-- ── CONFIG TAB ── -->
+    <div id="config" class="content">
+        <div class="title">Settings</div>
+        <div class="cfg-scroll">
+
+            <div class="cfg-section">
+                <div class="cfg-section-title">
+                     Groq API &nbsp;
+                    <a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent);text-decoration:none;font-size:9px;">Get Key ↗</a>
+                </div>
+                <label for="groqKey">Groq API Key</label>
+                <input type="password" id="groqKey" placeholder="gsk_...">
+                <span class="key-status unset" id="groqStatus">Not set</span>
+            </div>
+
+            <div class="cfg-section">
+                <div class="cfg-section-title">
+                     Gemini API &nbsp;
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--accent);text-decoration:none;font-size:9px;">Get Key ↗</a>
+                </div>
+                <label for="geminiKey">Gemini API Key</label>
+                <input type="password" id="geminiKey" placeholder="AIza...">
+                <span class="key-status unset" id="geminiStatus">Not set</span>
+            </div>
+
+            <div class="cfg-section">
+                <div class="cfg-section-title"> Prompt</div>
+                <label for="customPrompt">System Prompt</label>
+                <input type="text" id="customPrompt" placeholder="Реши кратко." style="margin-bottom:0;">
+            </div>
+
+        </div>
+        <button id="saveBtn" style="margin-top:12px; flex-shrink:0;"> Save Config</button>
+    </div>
+
+</div>
+
+<script src="popup.js"></script>
+</body>
+</html>
